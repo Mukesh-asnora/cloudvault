@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: cloudvault
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: file-service }
+  template:
+    metadata:
+      labels: { app: file-service }
+    spec:
+      containers:
+        - name: file-service
+          image: cloudvault/file-service:1.0.2
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8080 }]
+          resources:
+            requests: { cpu: "100m", memory: "320Mi" }
+            limits: { cpu: "1", memory: "1Gi" }
+          env:
+            - name: REDIS_HOST
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: REDIS_HOST } }
+            - name: REDIS_PORT
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: REDIS_PORT } }
+            - name: S3_ENDPOINT
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: S3_ENDPOINT } }
+            - name: S3_REGION
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: S3_REGION } }
+            - name: S3_BUCKET
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: S3_BUCKET } }
+            - name: S3_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: cloudvault-secrets, key: S3_ACCESS_KEY } }
+            - name: S3_SECRET_KEY
+              valueFrom: { secretKeyRef: { name: cloudvault-secrets, key: S3_SECRET_KEY } }
+            # Points at the ingress (single entry point) instead of MinIO
+            # directly, so presigned URLs are reachable by the browser
+            # through the one port-forward set up below.
+            - name: S3_PUBLIC_ENDPOINT
+              value: "http://localhost:9000"
+            - name: METADATA_SERVICE_URL
+              valueFrom: { configMapKeyRef: { name: cloudvault-config, key: METADATA_SERVICE_URL } }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: cloudvault-secrets, key: JWT_SECRET } }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-service
+  namespace: cloudvault
+spec:
+  selector: { app: file-service }
+  ports: [{ port: 8080, targetPort: 8080 }]

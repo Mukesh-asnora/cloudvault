@@ -1,0 +1,41 @@
+server:
+  port:${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: metadata-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:metadata_db}
+    username: ${DB_USER:cloudvault}
+    password: ${DB_PASSWORD:changeme_local_only}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
+
+jwt:
+  secret: ${JWT_SECRET:replace_this_with_a_generated_64_byte_base64_secret}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+logging:
+  level:
+    com.cloudvault: INFO
