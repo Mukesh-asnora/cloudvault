@@ -1,0 +1,9 @@
+# GitHub Linguist Overrides
+# Exclude PowerShell generator scripts from repo language statistics
+*.ps1 linguist-detectable=false
+*.ps1 linguist-vendored=true
+
+# Ensure Java and JavaScript/React are prioritized
+*.java linguist-detectable=true
+*.jsx linguist-detectable=true
+*.js linguist-detectable=true

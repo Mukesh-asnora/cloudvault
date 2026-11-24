@@ -24,3 +24,19 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+# More secret patterns
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+kubeconfig
+*.kubeconfig
+secrets.yaml
+secret*.yaml
+
+# Logs / misc
+*.log
+.mvn/timing.properties
+coverage/
